@@ -1,0 +1,193 @@
+# ===============================
+# Python
+# ===============================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+.python-version
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+
+# ===============================
+# Environment & Secrets
+# ===============================
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+*.crt
+secrets/
+config.json
+credentials.json
+
+# ===============================
+# Databases
+# ===============================
+*.db
+*.sqlite
+*.sqlite3
+*.psql
+*.dump
+
+# ===============================
+# Logs & Temporary Files
+# ===============================
+*.log
+*.pid
+*.seed
+*.pid.lock
+*.tmp
+*.temp
+logs/
+tmp/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===============================
+# Docker
+# ===============================
+docker-compose.override.yml
+docker-compose.*.yml
+*.tar.gz
+*.tar
+.dockerignore
+**/*.dockerignore
+
+# ===============================
+# Redis & Celery
+# ===============================
+dump.rdb
+celerybeat-schedule
+celerybeat.pid
+*.pid
+
+# ===============================
+# Frontend (React / Vite)
+# ===============================
+frontend/node_modules/
+frontend/.pnp
+frontend/.pnp.js
+frontend/dist/
+frontend/build/
+frontend/.vite/
+frontend/.env.local
+frontend/.env.*.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/.yarn/
+frontend/package-lock.json
+frontend/yarn.lock
+frontend/.eslintcache
+frontend/*.tsbuildinfo
+
+# ===============================
+# IDE / Editor
+# ===============================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-*
+
+# ===============================
+# OS generated
+# ===============================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.bak
+
+# ===============================
+# Project specific
+# ===============================
+backend/__pycache__/
+backend/.coverage
+backend/htmlcov/
+backend/.pytest_cache/
+backend/.mypy_cache/
+backend/alembic/versions/*.pyc
+backend/alembic/__pycache__/
+
+# Static & media (if any)
+staticfiles/
+media/
+uploads/
+
+# Backup files
+*.backup
+*.old
+*.orig
