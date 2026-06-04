@@ -7,6 +7,7 @@ from .appointment import AppointmentRepository
 from .review import ReviewRepository
 from .waitlist import WaitlistRepository
 from .audit_log import AuditLogRepository
+from .availability_exception import AvailabilityExceptionRepository
 
 __all__ = [
     "BaseRepository",
@@ -17,15 +18,5 @@ __all__ = [
     "ReviewRepository",
     "WaitlistRepository",
     "AuditLogRepository",
+    "AvailabilityExceptionRepository"
 ]
-
-backend/app/repositories/
-├── __init__.py
-├── base.py
-├── salon.py
-├── practitioner.py
-├── customer.py
-├── appointment.py
-├── review.py
-├── waitlist.py
-└── audit_log.py

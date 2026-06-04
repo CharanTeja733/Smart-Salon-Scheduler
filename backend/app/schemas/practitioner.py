@@ -69,6 +69,16 @@ class AvailabilityResponse(BaseModel):
     date: date
     available_slots: List[datetime]  # UTC datetimes
 
+class DeactivateRequest(BaseModel):
+    reason: str    
+
+class UnavailableRequest(BaseModel):
+    start_date: date
+    end_date: date
+    reason_code: str  # 'sick', 'emergency', 'other', 'private'
+    reason_text: Optional[str] = None
+
+
 # Forward reference for ReviewBrief
 from .review import ReviewBrief
 PractitionerResponse.model_rebuild()

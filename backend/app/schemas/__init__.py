@@ -1,6 +1,6 @@
 # backend/app/schemas/__init__.py
 from .salon import Salon, SalonSearchParams, SalonResponse
-from .practitioner import Practitioner, PractitionerResponse, AvailabilityRequest, AvailabilityResponse
+from .practitioner import Practitioner, PractitionerResponse, AvailabilityRequest, AvailabilityResponse, UnavailableRequest, DeactivateRequest
 from .customer import Customer, CustomerResponse, CustomerUpdate
 from .appointment import (
     BookingRequest, BookingResponse,
@@ -13,7 +13,7 @@ from .ai import StylistMatchRequest, StylistMatchResponse, SentimentResponse, De
 
 __all__ = [
     "Salon", "SalonSearchParams", "SalonResponse",
-    "Practitioner", "PractitionerResponse", "AvailabilityRequest", "AvailabilityResponse",
+    "Practitioner", "PractitionerResponse", "AvailabilityRequest", "AvailabilityResponse", "UnavailableRequest", "DeactivateRequest",
     "Customer", "CustomerResponse", "CustomerUpdate",
     "BookingRequest", "BookingResponse", "ConfirmRequest", "CancelRequest", "CancelResponse",
     "RescheduleRequest", "AppointmentStatusResponse",

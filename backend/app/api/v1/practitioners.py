@@ -6,7 +6,7 @@ from app.database import get_db
 from app.services.scheduling_service import SchedulingService
 from app.repositories.practitioner_repository import PractitionerRepository
 from app.repositories.review_repository import ReviewRepository
-from app.schemas.practitioner import PractitionerResponse, AvailabilityResponse
+from app.schemas.practitioner import PractitionerResponse, AvailabilityResponse, UnavailableRequest  DeactivateRequest
 from app.services.practitioner_service import PractitionerService
 
 router = APIRouter()
@@ -43,8 +43,6 @@ async def get_availability(
         available_slots=slots
     )
 
-class DeactivateRequest(BaseModel):
-    reason: str
 
 @router.post("/{practitioner_id}/deactivate")
 async def deactivate_practitioner(
@@ -59,6 +57,28 @@ async def deactivate_practitioner(
     """
     result = await PractitionerService.deactivate_practitioner(
         practitioner_id, req.reason, db
+    )
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result    
+
+
+@router.post("/{practitioner_id}/unavailable")
+async def mark_practitioner_unavailable(
+    practitioner_id: int,
+    req: UnavailableRequest,
+    # current_user = Depends(get_current_user),  # from JWT
+    db: Session = Depends(get_db)
+):
+    #  Only allow if:
+    #  - current_user.role == "admin", OR
+    #  - current_user.practitioner_id == practitioner_id
+    # if current_user.role != "admin" and current_user.practitioner_id != practitioner_id:
+    #     raise HTTPException(status_code=403, detail="Not authorized")
+
+    result = await PractitionerService.mark_unavailable(
+        practitioner_id, req.start_date, req.end_date,
+        req.reason_code, req.reason_text, db
     )
     if not result["success"]:
         raise HTTPException(status_code=400, detail=result["error"])
