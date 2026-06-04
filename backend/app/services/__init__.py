@@ -7,6 +7,7 @@ from .ai_matching import AIStylistMatcherService
 from .sentiment import SentimentService
 from .waitlist import WaitlistService
 from .google_places import GooglePlacesService
+from .salon_services import SalonService
 
 __all__ = [
     "SchedulingService",
@@ -18,4 +19,5 @@ __all__ = [
     "SentimentService",
     "WaitlistService",
     "GooglePlacesService",
+    "SalonService"
 ]
