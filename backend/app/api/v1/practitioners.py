@@ -7,6 +7,7 @@ from app.services.scheduling_service import SchedulingService
 from app.repositories.practitioner_repository import PractitionerRepository
 from app.repositories.review_repository import ReviewRepository
 from app.schemas.practitioner import PractitionerResponse, AvailabilityResponse
+from app.services.practitioner_service import PractitionerService
 
 router = APIRouter()
 
@@ -41,3 +42,24 @@ async def get_availability(
         date=date,
         available_slots=slots
     )
+
+class DeactivateRequest(BaseModel):
+    reason: str
+
+@router.post("/{practitioner_id}/deactivate")
+async def deactivate_practitioner(
+    practitioner_id: int,
+    req: DeactivateRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
+):
+    """
+    Mark a practitioner as inactive (sick day / leave).
+    Cancels all future appointments and notifies affected customers.
+    """
+    result = await PractitionerService.deactivate_practitioner(
+        practitioner_id, req.reason, db
+    )
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result    

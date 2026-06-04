@@ -8,6 +8,7 @@ from .sentiment import SentimentService
 from .waitlist import WaitlistService
 from .google_places import GooglePlacesService
 from .salon_services import SalonService
+from .practitioner_service import PractitionerService
 
 __all__ = [
     "SchedulingService",
@@ -19,5 +20,6 @@ __all__ = [
     "SentimentService",
     "WaitlistService",
     "GooglePlacesService",
-    "SalonService"
+    "SalonService",
+    "PractitionerService"
 ]

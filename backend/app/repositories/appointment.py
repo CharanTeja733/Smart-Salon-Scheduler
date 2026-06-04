@@ -88,3 +88,25 @@ class AppointmentRepository(BaseRepository[Appointment]):
             apt.cancellation_reason = "Hold expired without payment"
         db.flush()
         return len(expired)
+
+    def get_future_for_practitioner(self, db: Session, practitioner_id: int) -> List[Appointment]:
+        """Return all pending/confirmed appointments from now onwards for a practitioner."""
+        now = datetime.utcnow()
+        return db.query(self.model).filter(
+            self.model.practitioner_id == practitioner_id,
+            self.model.start_time >= now,
+            self.model.status.in_(["pending", "confirmed"])
+        ).order_by(self.model.start_time).all()
+
+    def cancel_bulk(self, db: Session, appointment_ids: List[int], reason: str) -> int:
+        """Cancel multiple appointments at once (used for sick day)."""
+        count = db.query(self.model).filter(self.model.id.in_(appointment_ids)).update(
+            {
+                "status": "cancelled",
+                "cancelled_at": datetime.utcnow(),
+                "cancellation_reason": reason
+            },
+            synchronize_session=False
+        )
+        db.flush()
+        return count    
