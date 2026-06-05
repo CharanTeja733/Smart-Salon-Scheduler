@@ -1,9 +1,11 @@
-from celery import shared_task
-from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
+
+from celery import shared_task
+
 from app.database import SessionLocal
 from app.repositories.appointment_repository import AppointmentRepository
 from app.repositories.audit_log_repository import AuditLogRepository
+
 
 @shared_task
 def cleanup_expired_holds():

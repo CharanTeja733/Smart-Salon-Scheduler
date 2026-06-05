@@ -1,7 +1,11 @@
-from sqlalchemy.orm import Session
 from typing import List, Optional
-from .base import BaseRepository
+
+from sqlalchemy.orm import Session
+
 from app.models.practitioner import Practitioner
+
+from .base import BaseRepository
+
 
 class PractitionerRepository(BaseRepository[Practitioner]):
     def __init__(self):
@@ -16,13 +20,13 @@ class PractitionerRepository(BaseRepository[Practitioner]):
     def get_by_specialty(self, db: Session, specialty: str, limit: int = 20) -> List[Practitioner]:
         return db.query(self.model).filter(
             self.model.specialty.ilike(f"%{specialty}%"),
-            self.model.is_active == True
+            self.model.is_active is True
         ).limit(limit).all()
 
     def get_by_service_type(self, db: Session, service_type: str, limit: int = 50) -> List[Practitioner]:
         return db.query(self.model).filter(
             self.model.specializations.contains([service_type]),
-            self.model.is_active == True
+            self.model.is_active is True
         ).limit(limit).all()
 
     def lock_for_update(self, db: Session, practitioner_id: int) -> Optional[Practitioner]:

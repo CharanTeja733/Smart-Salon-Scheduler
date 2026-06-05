@@ -1,11 +1,13 @@
+from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import List
+
 from app.database import get_db
-from app.repositories.customer_repository import CustomerRepository
 from app.repositories.appointment_repository import AppointmentRepository
-from app.schemas.customer import CustomerResponse, CustomerUpdate
+from app.repositories.customer_repository import CustomerRepository
 from app.schemas.appointment import AppointmentStatusResponse
+from app.schemas.customer import CustomerResponse, CustomerUpdate
 
 router = APIRouter()
 
@@ -47,7 +49,7 @@ async def get_customer_appointments(
     customer = customer_repo.get_by_phone(db, phone)
     if not customer:
         raise HTTPException(status_code=404, detail="Customer not found")
-    
+
     apt_repo = AppointmentRepository()
     if status == "upcoming":
         appointments = apt_repo.get_upcoming_for_customer(db, customer.id)

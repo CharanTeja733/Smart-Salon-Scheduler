@@ -1,6 +1,7 @@
 # backend/app/middleware/request_logger.py
-import time
 import logging
+import time
+
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 

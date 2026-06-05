@@ -1,14 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Header
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy.orm import Session
+
+from app.api.v1.dependencies import get_idempotency_key
 from app.database import get_db
+from app.schemas.appointment import (
+    AppointmentStatusResponse,
+    BookingRequest,
+    BookingResponse,
+    CancelRequest,
+    CancelResponse,
+    ConfirmRequest,
+    RescheduleRequest,
+)
 from app.services.booking_service import BookingService
 from app.services.cancellation_service import CancellationService
-from app.schemas.appointment import (
-    BookingRequest, BookingResponse,
-    ConfirmRequest, CancelRequest, CancelResponse,
-    RescheduleRequest, AppointmentStatusResponse
-)
-from app.api.v1.dependencies import get_idempotency_key
 
 router = APIRouter()
 
@@ -30,7 +35,7 @@ async def create_booking(
     )
     if not result["success"]:
         raise HTTPException(status_code=409, detail=result["error"])
-    
+
     # Return response
     return BookingResponse(
         appointment_id=result["appointment_id"],

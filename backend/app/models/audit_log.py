@@ -1,6 +1,9 @@
-from sqlalchemy import Column, BigInteger, Integer, String, JSON, DateTime, Index
+from sqlalchemy import JSON, BigInteger, Column, DateTime, Index, Integer, String
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.sql import func
+
+from app.database import Base
+
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"

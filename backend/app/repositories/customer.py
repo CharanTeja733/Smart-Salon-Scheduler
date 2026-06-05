@@ -1,7 +1,12 @@
-from sqlalchemy.orm import Session
 from typing import Optional
-from .base import BaseRepository
+
+from sqlalchemy.orm import Session
+from sqlalchemy.sql import func
+
 from app.models.customer import Customer
+
+from .base import BaseRepository
+
 
 class CustomerRepository(BaseRepository[Customer]):
     def __init__(self):
@@ -10,7 +15,7 @@ class CustomerRepository(BaseRepository[Customer]):
     def get_by_phone(self, db: Session, phone: str) -> Optional[Customer]:
         return db.query(self.model).filter(self.model.phone == phone).first()
 
-    def get_or_create(self, db: Session, phone: str, name: str, email: str = None) -> Customer:
+    def get_or_create(self, db: Session, phone: str, name: str, email: Optional[str] = None) -> Customer:
         customer = self.get_by_phone(db, phone)
         if not customer:
             customer = self.create(db, phone=phone, name=name, email=email)

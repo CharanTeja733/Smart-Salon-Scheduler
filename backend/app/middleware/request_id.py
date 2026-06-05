@@ -1,7 +1,9 @@
 # backend/app/middleware/request_id.py
 import uuid
+
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
+
 
 class RequestIDMiddleware(BaseHTTPMiddleware):
     """

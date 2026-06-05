@@ -1,10 +1,12 @@
+from typing import Optional
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-from typing import Optional
+
 from app.database import get_db
+from app.schemas.ai import SentimentResponse, StylistMatchResponse
 from app.services.ai_matching_service import AIStylistMatcherService
 from app.services.sentiment_service import SentimentService
-from app.schemas.ai import StylistMatchResponse, SentimentResponse
 
 router = APIRouter()
 

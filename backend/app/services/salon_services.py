@@ -1,10 +1,11 @@
-from datetime import datetime, timedelta
-from typing import List, Tuple, Optional
+from typing import List, Optional, Tuple
+
 from sqlalchemy.orm import Session
+
+from app.models.salon import Salon
 from app.repositories.salon_repository import SalonRepository
 from app.services.google_places_service import GooglePlacesService
-from app.models.salon import Salon
-from app.config import settings
+
 
 class SalonService:
     CACHE_TTL_DAYS = 7  # from settings.SALON_CACHE_TTL_SECONDS // 86400

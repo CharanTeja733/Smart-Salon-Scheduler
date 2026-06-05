@@ -1,7 +1,10 @@
-from pydantic import BaseModel, Field, validator
-from typing import Optional
 from datetime import datetime
+from typing import Optional
+
+from pydantic import BaseModel, validator
+
 from .common import validate_phone
+
 
 class WaitlistCreate(BaseModel):
     practitioner_id: int
@@ -12,7 +15,6 @@ class WaitlistCreate(BaseModel):
 
     @validator('customer_phone')
     def validate_phone(cls, v):
-        from .common import validate_phone
         return validate_phone(v)
 
     @validator('preferred_date_end')

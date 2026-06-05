@@ -1,8 +1,11 @@
-from pydantic import BaseModel, Field, validator
-from typing import Optional
 from datetime import datetime, timedelta
 from enum import Enum
-from .common import validate_phone, validate_email, validate_future_datetime
+from typing import Optional
+
+from pydantic import BaseModel, Field, validator
+
+from .common import validate_future_datetime, validate_phone
+
 
 class ServiceType(str, Enum):
     HAIRCUT = "haircut"
@@ -28,7 +31,6 @@ class CustomerInfo(BaseModel):
 
     @validator('phone')
     def validate_phone(cls, v):
-        from .common import validate_phone
         return validate_phone(v)
 
 class BookingRequest(BaseModel):

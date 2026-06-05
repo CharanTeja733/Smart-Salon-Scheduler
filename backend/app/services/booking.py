@@ -1,14 +1,17 @@
 from datetime import datetime, timedelta
+from typing import Optional
+
 from sqlalchemy.orm import Session
+
 from app.repositories import (
-    PractitionerRepository,
     AppointmentRepository,
+    AuditLogRepository,
     CustomerRepository,
-    AuditLogRepository
+    PractitionerRepository,
 )
-from app.services.payment_service import PaymentService
-from app.services.scheduling_service import SchedulingService
 from app.schemas.appointment import CustomerInfo
+from app.services.payment_service import PaymentService
+
 
 class BookingService:
     HOLD_MINUTES = 10
@@ -21,8 +24,8 @@ class BookingService:
         service_type: str,
         duration_minutes: int,
         db: Session,
-        ip_address: str = None,
-        user_agent: str = None
+        ip_address: Optional[str] = None,
+        user_agent: Optional[str] = None
     ):
         practitioner_repo = PractitionerRepository()
         appointment_repo = AppointmentRepository()

@@ -1,6 +1,6 @@
-from datetime import datetime, date, time, timedelta
+from datetime import date, datetime, time, timedelta
 from typing import List, Optional
-import re
+
 
 def get_utc_now() -> datetime:
     """Return current UTC datetime."""

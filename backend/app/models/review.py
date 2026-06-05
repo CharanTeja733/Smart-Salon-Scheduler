@@ -1,6 +1,19 @@
-from sqlalchemy import Column, Integer, String, Float, Text, ForeignKey, DateTime, CheckConstraint, Index
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    Text,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+
+from app.database import Base
+
 
 class Review(Base):
     __tablename__ = "reviews"

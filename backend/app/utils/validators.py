@@ -1,6 +1,7 @@
 import re
 from typing import Optional
 
+
 def validate_phone(phone: str) -> bool:
     """
     Validate phone number in E.164 format.
@@ -28,7 +29,7 @@ def validate_service_type(service_type: str, allowed_types: list) -> bool:
     """Check if service type is allowed."""
     return service_type in allowed_types
 
-def validate_duration(duration: int, allowed_durations: list = None) -> bool:
+def validate_duration(duration: int, allowed_durations: Optional[list] = None) -> bool:
     """Check if duration is allowed (30,60,90,120)."""
     allowed = allowed_durations or [30, 60, 90, 120]
     return duration in allowed
@@ -37,7 +38,7 @@ def validate_opening_hours(hours_dict: dict) -> bool:
     """
     Validate opening hours format: {"monday": "09:00-18:00", ...}
     """
-    for day, hours in hours_dict.items():
+    for _day, hours in hours_dict.items():
         if hours == "closed":
             continue
         if not re.match(r'^\d{2}:\d{2}-\d{2}:\d{2}$', hours):

@@ -1,7 +1,8 @@
 from celery import shared_task
-from sqlalchemy.orm import Session
+
 from app.database import SessionLocal
 from app.services.google_places_service import GooglePlacesService
+
 
 @shared_task
 def refresh_salon_cache():

@@ -1,10 +1,14 @@
-from sqlalchemy.orm import Session
-from sqlalchemy import func
-from geoalchemy2.functions import ST_DistanceSphere
 from datetime import datetime, timedelta
-from typing import List, Tuple, Optional
-from .base import BaseRepository
+from typing import List, Optional, Tuple
+
+from geoalchemy2.functions import ST_DistanceSphere
+from sqlalchemy import func
+from sqlalchemy.orm import Session
+
 from app.models.salon import Salon
+
+from .base import BaseRepository
+
 
 class SalonRepository(BaseRepository[Salon]):
     def __init__(self):

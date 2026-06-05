@@ -1,15 +1,31 @@
 # backend/app/schemas/__init__.py
-from .salon import Salon, SalonSearchParams, SalonResponse
-from .practitioner import Practitioner, PractitionerResponse, AvailabilityRequest, AvailabilityResponse, UnavailableRequest, DeactivateRequest
-from .customer import Customer, CustomerResponse, CustomerUpdate
+from .ai import (
+    DemandPredictionResponse,
+    SentimentResponse,
+    StylistMatchRequest,
+    StylistMatchResponse,
+)
 from .appointment import (
-    BookingRequest, BookingResponse,
-    ConfirmRequest, CancelRequest, CancelResponse,
-    RescheduleRequest, AppointmentStatusResponse
+    AppointmentStatusResponse,
+    BookingRequest,
+    BookingResponse,
+    CancelRequest,
+    CancelResponse,
+    ConfirmRequest,
+    RescheduleRequest,
+)
+from .customer import Customer, CustomerResponse, CustomerUpdate
+from .practitioner import (
+    AvailabilityRequest,
+    AvailabilityResponse,
+    DeactivateRequest,
+    Practitioner,
+    PractitionerResponse,
+    UnavailableRequest,
 )
 from .review import ReviewCreate, ReviewResponse
+from .salon import Salon, SalonResponse, SalonSearchParams
 from .waitlist import WaitlistCreate, WaitlistResponse, WaitlistStatusResponse
-from .ai import StylistMatchRequest, StylistMatchResponse, SentimentResponse, DemandPredictionResponse
 
 __all__ = [
     "Salon", "SalonSearchParams", "SalonResponse",

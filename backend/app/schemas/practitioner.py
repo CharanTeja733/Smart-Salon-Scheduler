@@ -1,7 +1,10 @@
+from datetime import date, datetime
+from typing import Dict, List, Optional
+
 from pydantic import BaseModel, Field, validator
-from typing import Optional, List, Dict
-from datetime import datetime, date, time
-from .common import validate_phone, validate_email
+
+from .common import validate_email, validate_phone
+
 
 class PractitionerBrief(BaseModel):
     id: int
@@ -70,7 +73,7 @@ class AvailabilityResponse(BaseModel):
     available_slots: List[datetime]  # UTC datetimes
 
 class DeactivateRequest(BaseModel):
-    reason: str    
+    reason: str
 
 class UnavailableRequest(BaseModel):
     start_date: date
@@ -81,4 +84,5 @@ class UnavailableRequest(BaseModel):
 
 # Forward reference for ReviewBrief
 from .review import ReviewBrief
+
 PractitionerResponse.model_rebuild()

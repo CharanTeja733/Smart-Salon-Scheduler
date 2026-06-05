@@ -1,8 +1,8 @@
 from .celery_app import celery_app
-from .reminders import send_reminder, send_booking_confirmation_task
-from .payments import process_refund_task
 from .cleanup import cleanup_expired_holds, cleanup_old_logs
+from .payments import process_refund_task
 from .refresh_data import refresh_salon_cache
+from .reminders import send_booking_confirmation_task, send_reminder
 
 __all__ = [
     "celery_app",

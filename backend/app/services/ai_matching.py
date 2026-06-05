@@ -1,9 +1,16 @@
-from typing import List, Dict, Optional
+from math import atan2, cos, radians, sin, sqrt
+from typing import Dict, List, Optional
+
 from sqlalchemy.orm import Session
-from app.repositories import PractitionerRepository, CustomerRepository, AppointmentRepository, ReviewRepository
+
+from app.repositories import (
+    AppointmentRepository,
+    CustomerRepository,
+    PractitionerRepository,
+    ReviewRepository,
+)
 from app.services.scheduling_service import SchedulingService
-from app.services.sentiment_service import SentimentService
-from math import radians, sin, cos, sqrt, atan2
+
 
 class AIStylistMatcherService:
     WEIGHTS = {
@@ -32,25 +39,40 @@ class AIStylistMatcherService:
         # Get all practitioners offering this service
         practitioners = practitioner_repo.get_by_service_type(db, service_type)
 
-        # Customer preferences (if exists)
+        # Fetch customer if phone provided
         customer = None
+        past_stylist_ids = set()
         if customer_phone:
             customer = customer_repo.get_by_phone(db, customer_phone)
+            if customer:
+                # Get list of stylist IDs this customer has booked before (completed appointments)
+                past_appointments = appointment_repo.get_past_for_customer(db, customer.id, limit=100)
+                past_stylist_ids = {apt.practitioner_id for apt in past_appointments}
+
+        # Weight adjustments (total 100%)
+        WEIGHTS = {
+            "expertise": 0.35,
+            "rating": 0.20,
+            "sentiment": 0.15,
+            "workload": 0.10,
+            "distance": 0.10,
+            "customer_preference": 0.10   # new factor
+        }
 
         scored = []
         for p in practitioners:
             score = 0.0
             breakdown = {}
 
-            # 1. Expertise match (40%)
+            # 1. Expertise match (35%)
             expertise_score = 100.0 if service_type in (p.specializations or []) else 50.0
             breakdown["expertise_match"] = expertise_score
-            score += expertise_score * AIStylistMatcherService.WEIGHTS["expertise"]
+            score += expertise_score * WEIGHTS["expertise"]
 
-            # 2. Rating (25%)
+            # 2. Rating (20%)
             rating_score = (p.rating / 5.0) * 100
             breakdown["rating"] = rating_score
-            score += rating_score * AIStylistMatcherService.WEIGHTS["rating"]
+            score += rating_score * WEIGHTS["rating"]
 
             # 3. Review sentiment (15%)
             reviews = review_repo.get_by_practitioner(db, p.id, limit=50)
@@ -58,24 +80,41 @@ class AIStylistMatcherService:
                 avg_sentiment = sum(r.sentiment_score or 0.5 for r in reviews) / len(reviews)
             else:
                 avg_sentiment = 0.5
-            sentiment_score = ((avg_sentiment + 1) / 2) * 100  # -1..1 to 0..100
+            sentiment_score = ((avg_sentiment + 1) / 2) * 100
             breakdown["sentiment"] = sentiment_score
-            score += sentiment_score * AIStylistMatcherService.WEIGHTS["sentiment"]
+            score += sentiment_score * WEIGHTS["sentiment"]
 
             # 4. Workload balance (10%)
             upcoming = appointment_repo.get_upcoming_for_customer(db, p.id, limit=100)
-            workload_score = max(0, 100 - (len(upcoming) * 2))  # penalize many upcoming
+            workload_score = max(0, 100 - (len(upcoming) * 2))
             breakdown["workload"] = workload_score
-            score += workload_score * AIStylistMatcherService.WEIGHTS["workload"]
+            score += workload_score * WEIGHTS["workload"]
 
             # 5. Distance (10%) if coordinates provided
             distance_score = 100.0
             if lat and lng and p.salon:
                 dist = AIStylistMatcherService._haversine(lat, lng, p.salon.latitude, p.salon.longitude)
-                # Normalize: 0km = 100, 10km = 0
-                distance_score = max(0, 100 - (dist / 0.1))
-                breakdown["distance"] = distance_score
-                score += distance_score * AIStylistMatcherService.WEIGHTS["distance"]
+                distance_score = max(0, 100 - (dist / 0.1))  # 0km=100, 10km=0
+            breakdown["distance"] = distance_score
+            score += distance_score * WEIGHTS["distance"]
+
+            # 6. Customer preference (10%) – NEW
+            preference_score = 50.0  # neutral default
+            if customer:
+                if customer.preferred_stylist_id == p.id:
+                    preference_score = 100.0   # highest boost
+                    breakdown["customer_preference"] = "preferred_stylist"
+                elif p.id in past_stylist_ids:
+                    preference_score = 80.0    # previous booking
+                    breakdown["customer_preference"] = "past_booking"
+                else:
+                    preference_score = 50.0
+                    breakdown["customer_preference"] = "neutral"
+            else:
+                breakdown["customer_preference"] = "no_customer_data"
+
+            score += preference_score * WEIGHTS["customer_preference"]
+            breakdown["preference_score"] = preference_score
 
             scored.append({
                 "practitioner": p,

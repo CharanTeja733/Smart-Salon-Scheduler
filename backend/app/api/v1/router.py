@@ -1,5 +1,15 @@
 from fastapi import APIRouter
-from app.api.v1 import salons, practitioners, appointments, customers, reviews, waitlist, ai, webhooks
+
+from app.api.v1 import (
+    ai,
+    appointments,
+    customers,
+    practitioners,
+    reviews,
+    salons,
+    waitlist,
+    webhooks,
+)
 
 api_router = APIRouter(prefix="/api/v1")
 

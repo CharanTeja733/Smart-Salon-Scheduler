@@ -1,6 +1,17 @@
-from sqlalchemy import Column, Integer, String, Date, Boolean, DateTime, ForeignKey, UniqueConstraint
+from sqlalchemy import (
+    Boolean,
+    Column,
+    Date,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.sql import func
+
 from app.database import Base
+
 
 class AvailabilityException(Base):
     __tablename__ = "availability_exceptions"

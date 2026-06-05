@@ -1,8 +1,11 @@
-from sqlalchemy.orm import Session
 from datetime import date
 from typing import List, Optional
+
+from sqlalchemy.orm import Session
+
 from app.models.availability_exception import AvailabilityException
 from app.repositories.base import BaseRepository
+
 
 class AvailabilityExceptionRepository(BaseRepository[AvailabilityException]):
     def __init__(self):
@@ -15,7 +18,7 @@ class AvailabilityExceptionRepository(BaseRepository[AvailabilityException]):
             self.model.exception_date <= end_date
         ).all()
 
-    def add_exception(self, db: Session, practitioner_id: int, exception_date: date, reason_code: str, reason_text: str = None) -> AvailabilityException:
+    def add_exception(self, db: Session, practitioner_id: int, exception_date: date, reason_code: str, reason_text: Optional[str] = None) -> AvailabilityException:
         return self.create(
             db,
             practitioner_id=practitioner_id,

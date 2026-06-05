@@ -1,5 +1,6 @@
 import re
 
+
 def format_currency(amount: float, currency: str = "USD") -> str:
     """Format price as currency string."""
     symbols = {"USD": "$", "EUR": "€", "GBP": "£"}

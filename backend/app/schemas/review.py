@@ -1,6 +1,8 @@
-from pydantic import BaseModel, Field, validator
-from typing import Optional
 from datetime import datetime
+from typing import Optional
+
+from pydantic import BaseModel, Field
+
 
 class ReviewBase(BaseModel):
     rating: int = Field(..., ge=1, le=5)

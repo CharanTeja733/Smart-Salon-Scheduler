@@ -1,5 +1,6 @@
 from textblob import TextBlob
 
+
 class SentimentService:
     @staticmethod
     def analyze(text: str) -> dict:

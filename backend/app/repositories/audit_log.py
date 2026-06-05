@@ -1,5 +1,9 @@
-from .base import BaseRepository
+from typing import Optional
+
 from app.models.audit_log import AuditLog
+
+from .base import BaseRepository
+
 
 class AuditLogRepository(BaseRepository[AuditLog]):
     def __init__(self):
@@ -7,8 +11,8 @@ class AuditLogRepository(BaseRepository[AuditLog]):
 
     def log_change(
         self, db, entity_type: str, entity_id: int, action: str,
-        old_values: dict = None, new_values: dict = None,
-        ip_address: str = None, user_agent: str = None
+        old_values: Optional[dict] = None, new_values: Optional[dict] = None,
+        ip_address: Optional[str] = None, user_agent: Optional[str] = None
     ) -> AuditLog:
         return self.create(
             db,

@@ -1,7 +1,7 @@
-from .request_logger import RequestLoggerMiddleware
 from .error_handler import ExceptionHandlerMiddleware
-from .request_id import RequestIDMiddleware
 from .rate_limit import GlobalRateLimitMiddleware
+from .request_id import RequestIDMiddleware
+from .request_logger import RequestLoggerMiddleware
 
 __all__ = [
     "RequestLoggerMiddleware",

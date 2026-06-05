@@ -1,9 +1,12 @@
 # backend/app/services/scheduling_service.py
-from datetime import datetime, timedelta, date, time
-from typing import List, Optional
+from datetime import date, datetime, time, timedelta
+from typing import List
+
 from sqlalchemy.orm import Session
-from app.repositories import PractitionerRepository, AppointmentRepository
+
 from app.models.practitioner import Practitioner
+from app.repositories import AppointmentRepository, PractitionerRepository
+
 
 class SchedulingService:
     SLOT_DURATION_MINUTES = 30

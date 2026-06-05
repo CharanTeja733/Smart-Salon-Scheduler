@@ -1,6 +1,8 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List, Dict
 from datetime import date, datetime
+from typing import Dict, List, Optional
+
+from pydantic import BaseModel, Field
+
 
 class StylistMatchRequest(BaseModel):
     service_type: str

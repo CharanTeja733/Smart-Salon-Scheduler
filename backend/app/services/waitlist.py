@@ -1,7 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+from typing import Optional
+
 from sqlalchemy.orm import Session
-from app.repositories import WaitlistRepository, CustomerRepository
+
+from app.repositories import CustomerRepository, WaitlistRepository
 from app.services.notification_service import NotificationService
+
 
 class WaitlistService:
     @staticmethod
@@ -9,9 +13,9 @@ class WaitlistService:
         db: Session,
         practitioner_id: int,
         customer_phone: str,
-        preferred_date_start: datetime = None,
-        preferred_date_end: datetime = None,
-        service_type: str = None
+        preferred_date_start: Optional[datetime] = None,
+        preferred_date_end: Optional[datetime] = None,
+        service_type: Optional[str] = None
     ):
         customer_repo = CustomerRepository()
         waitlist_repo = WaitlistRepository()
@@ -37,7 +41,7 @@ class WaitlistService:
         return {"success": True, "waitlist_id": entry.id, "position": position}
 
     @staticmethod
-    async def notify_for_slot(db: Session, practitioner_id: int, slot_time: datetime, service_type: str = None):
+    async def notify_for_slot(db: Session, practitioner_id: int, slot_time: datetime, service_type: Optional[str] = None):
         waitlist_repo = WaitlistRepository()
         entries = waitlist_repo.get_matching_for_slot(db, practitioner_id, slot_time, service_type)
         for entry in entries:

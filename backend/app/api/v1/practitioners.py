@@ -1,13 +1,19 @@
-from fastapi import APIRouter, Depends, Query, HTTPException
-from sqlalchemy.orm import Session
 from datetime import date
-from typing import List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
+
 from app.database import get_db
-from app.services.scheduling_service import SchedulingService
 from app.repositories.practitioner_repository import PractitionerRepository
 from app.repositories.review_repository import ReviewRepository
-from app.schemas.practitioner import PractitionerResponse, AvailabilityResponse, UnavailableRequest  DeactivateRequest
+from app.schemas.practitioner import (
+    AvailabilityResponse,
+    DeactivateRequest,
+    PractitionerResponse,
+    UnavailableRequest,
+)
 from app.services.practitioner_service import PractitionerService
+from app.services.scheduling_service import SchedulingService
 
 router = APIRouter()
 
@@ -21,7 +27,7 @@ async def get_practitioner(
     practitioner = practitioner_repo.get_by_id(db, practitioner_id)
     if not practitioner or not practitioner.is_active:
         raise HTTPException(status_code=404, detail="Practitioner not found")
-    
+
     response = PractitionerResponse.from_orm(practitioner)
     if include_reviews:
         review_repo = ReviewRepository()
@@ -48,7 +54,6 @@ async def get_availability(
 async def deactivate_practitioner(
     practitioner_id: int,
     req: DeactivateRequest,
-    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
     """
@@ -60,7 +65,7 @@ async def deactivate_practitioner(
     )
     if not result["success"]:
         raise HTTPException(status_code=400, detail=result["error"])
-    return result    
+    return result
 
 
 @router.post("/{practitioner_id}/unavailable")
@@ -82,4 +87,4 @@ async def mark_practitioner_unavailable(
     )
     if not result["success"]:
         raise HTTPException(status_code=400, detail=result["error"])
-    return result    
+    return result

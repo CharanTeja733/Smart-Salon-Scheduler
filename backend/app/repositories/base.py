@@ -1,5 +1,7 @@
-from typing import TypeVar, Generic, Type, List, Optional, Dict, Any
+from typing import Any, Dict, Generic, List, Optional, Type, TypeVar
+
 from sqlalchemy.orm import Session
+
 from app.database import Base
 
 ModelType = TypeVar("ModelType", bound=Base)

@@ -1,10 +1,12 @@
 # backend/app/api/v1/salons.py
+from typing import List
+
 from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy.orm import Session
-from typing import List
+
 from app.database import get_db
-from app.services.salon_service import SalonService
 from app.schemas.salon import SalonResponse
+from app.services.salon_service import SalonService
 
 router = APIRouter()
 

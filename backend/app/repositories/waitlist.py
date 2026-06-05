@@ -1,8 +1,12 @@
-from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from typing import List, Optional
-from .base import BaseRepository
+
+from sqlalchemy.orm import Session
+
 from app.models.waitlist import WaitlistEntry
+
+from .base import BaseRepository
+
 
 class WaitlistRepository(BaseRepository[WaitlistEntry]):
     def __init__(self):
@@ -15,7 +19,7 @@ class WaitlistRepository(BaseRepository[WaitlistEntry]):
         ).order_by(self.model.created_at).all()
 
     def get_matching_for_slot(
-        self, db: Session, practitioner_id: int, slot_time: datetime, service_type: str = None
+        self, db: Session, practitioner_id: int, slot_time: datetime, service_type: Optional[str] = None
     ) -> List[WaitlistEntry]:
         query = db.query(self.model).filter(
             self.model.practitioner_id == practitioner_id,

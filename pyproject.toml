@@ -1,55 +1,11 @@
-[project]
-name = "salon-scheduler"
-version = "1.0.0"
-
 [tool.ruff]
-# Line length – matches Black default
 line-length = 88
-
-# Exclude common directories
-exclude = [
-    ".git",
-    ".venv",
-    "__pycache__",
-    "build",
-    "dist",
-    "migrations",
-    "venv",
-    "env",
-]
+exclude = [".git", ".venv", "__pycache__", "migrations", "venv"]
 
 [tool.ruff.lint]
-# Select rules
-select = [
-    "E",   # pycodestyle errors
-    "W",   # pycodestyle warnings
-    "F",   # pyflakes
-    "I",   # isort
-    "C",   # flake8-comprehensions
-    "B",   # flake8-bugbear
-    "UP",  # pyupgrade
-    "RUF", # Ruff-specific rules
-]
-
-# Ignore specific rules (adjust as needed)
-ignore = [
-    "E501",  # line too long – handled by formatter
-    "C901",  # complexity – we can ignore for hackathon
-]
-
-# Mark as a valid Python package root
-src = ["backend"]
-
-[tool.ruff.lint.per-file-ignores]
-"__init__.py" = ["F401"]  # allow unused imports in __init__
+select = ["E", "W", "F", "I", "C", "B", "UP", "RUF"]
+ignore = ["E501"]
 
 [tool.ruff.format]
-# Formatting style (like Black)
 quote-style = "double"
 indent-style = "space"
-skip-magic-trailing-comma = false
-line-ending = "auto"
-
-[tool.isort]
-profile = "black"
-line_length = 88

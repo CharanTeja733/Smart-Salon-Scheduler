@@ -1,5 +1,6 @@
-from twilio.rest import Client
 import resend
+from twilio.rest import Client
+
 from app.config import settings
 
 twilio_client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
@@ -54,3 +55,37 @@ class NotificationService:
     async def send_reminder(customer_phone: str, customer_name: str, appointment_details: dict):
         message = f"Reminder: {customer_name}, your appointment with {appointment_details['practitioner_name']} is tomorrow at {appointment_details['start_time'].strftime('%I:%M %p')}. Reply CANCEL to cancel."
         await NotificationService.send_sms(customer_phone, message)
+
+
+    @staticmethod
+    def send_sms_sync(to: str, message: str) -> bool:
+        """Synchronous SMS sending using Twilio."""
+        from twilio.rest import Client
+        try:
+            client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+            client.messages.create(
+                body=message,
+                from_=settings.TWILIO_PHONE_NUMBER,
+                to=to
+            )
+            return True
+        except Exception as e:
+            print(f"SMS failed to {to}: {e}")
+            return False
+
+    @staticmethod
+    def send_email_sync(to: str, subject: str, html_body: str) -> bool:
+        """Synchronous email sending using Resend."""
+        import resend
+        try:
+            resend.api_key = settings.RESEND_API_KEY
+            resend.Emails.send({
+                "from": "noreply@salonscheduler.com",
+                "to": to,
+                "subject": subject,
+                "html": html_body
+            })
+            return True
+        except Exception as e:
+            print(f"Email failed to {to}: {e}")
+            return False

@@ -1,6 +1,17 @@
-    from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, CheckConstraint, Index
+from sqlalchemy import (
+    CheckConstraint,
+    Column,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+
+from app.database import Base
+
 
 class WaitlistEntry(Base):
     __tablename__ = "waitlist"

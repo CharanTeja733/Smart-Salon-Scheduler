@@ -1,8 +1,12 @@
-from datetime import datetime, timedelta
+from datetime import datetime
+from typing import Optional
+
 from sqlalchemy.orm import Session
+
 from app.repositories import AppointmentRepository, AuditLogRepository
 from app.services.payment_service import PaymentService
 from app.services.waitlist_service import WaitlistService
+
 
 class CancellationService:
     # Refund tiers: (hours_before, refund_percentage)
@@ -13,7 +17,7 @@ class CancellationService:
     ]
 
     @staticmethod
-    async def cancel_appointment(appointment_id: int, reason: str, db: Session, ip_address: str = None):
+    async def cancel_appointment(appointment_id: int, reason: str, db: Session, ip_address: Optional[str] = None):
         appointment_repo = AppointmentRepository()
         audit_repo = AuditLogRepository()
 

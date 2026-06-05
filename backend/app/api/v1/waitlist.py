@@ -1,8 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
 from app.database import get_db
+from app.schemas.waitlist import (
+    WaitlistCreate,
+    WaitlistResponse,
+    WaitlistStatusResponse,
+)
 from app.services.waitlist_service import WaitlistService
-from app.schemas.waitlist import WaitlistCreate, WaitlistResponse, WaitlistStatusResponse
 
 router = APIRouter()
 

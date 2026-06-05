@@ -1,8 +1,11 @@
+from datetime import datetime
+
 import httpx
-from typing import List, Dict, Optional
+from sqlalchemy.orm import Session
+
 from app.config import settings
 from app.repositories import SalonRepository
-from sqlalchemy.orm import Session
+
 
 class GooglePlacesService:
     BASE_URL = "https://maps.googleapis.com/maps/api/place"

@@ -1,6 +1,8 @@
 import time
 from collections import defaultdict
-from fastapi import Request, HTTPException
+
+from fastapi import HTTPException, Request
+
 
 class RateLimiter:
     """
@@ -11,7 +13,7 @@ class RateLimiter:
         self.requests_per_minute = requests_per_minute
         self.window_size = 60  # seconds
         self.records = defaultdict(list)  # key: client_ip, value: list of timestamps
-    
+
     async def __call__(self, request: Request):
         client_ip = request.client.host
         now = time.time()

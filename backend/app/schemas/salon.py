@@ -1,7 +1,8 @@
-from pydantic import BaseModel, Field, validator
-from typing import Optional, List, Dict
 from datetime import datetime
-from .common import OpeningHours
+from typing import Dict, List, Optional
+
+from pydantic import BaseModel, Field
+
 
 class SalonBase(BaseModel):
     google_place_id: str
@@ -44,4 +45,5 @@ class SalonResponse(SalonBase):
 
 # Forward reference for PractitionerBrief
 from .practitioner import PractitionerBrief
+
 SalonResponse.model_rebuild()

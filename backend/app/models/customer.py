@@ -1,7 +1,9 @@
-# backend/app/models/customer.py
-from sqlalchemy import Column, Integer, String, Float, DateTime, JSON, Index
+from sqlalchemy import JSON, Column, DateTime, Float, ForeignKey, Index, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+
+from app.database import Base
+
 
 class Customer(Base):
     __tablename__ = "customers"

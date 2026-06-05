@@ -1,9 +1,13 @@
-from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_
 from datetime import datetime, timedelta
 from typing import List, Optional
-from .base import BaseRepository
+
+from sqlalchemy import and_, or_
+from sqlalchemy.orm import Session
+
 from app.models.appointment import Appointment
+
+from .base import BaseRepository
+
 
 class AppointmentRepository(BaseRepository[Appointment]):
     def __init__(self):
@@ -58,7 +62,7 @@ class AppointmentRepository(BaseRepository[Appointment]):
         reminder_window_end = now + timedelta(hours=25)
         return db.query(self.model).filter(
             self.model.status == "confirmed",
-            self.model.reminder_sent == False,
+            self.model.reminder_sent is False,
             self.model.start_time >= reminder_window_start,
             self.model.start_time <= reminder_window_end
         ).all()
@@ -98,6 +102,16 @@ class AppointmentRepository(BaseRepository[Appointment]):
             self.model.status.in_(["pending", "confirmed"])
         ).order_by(self.model.start_time).all()
 
+    def get_by_practitioner_date_range(
+        self, db: Session, practitioner_id: int, start_dt: datetime, end_dt: datetime
+    ) -> List[Appointment]:
+        return db.query(self.model).filter(
+            self.model.practitioner_id == practitioner_id,
+            self.model.start_time >= start_dt,
+            self.model.start_time <= end_dt,
+            self.model.status.in_(["pending", "confirmed"])
+        ).all()
+
     def cancel_bulk(self, db: Session, appointment_ids: List[int], reason: str) -> int:
         """Cancel multiple appointments at once (used for sick day)."""
         count = db.query(self.model).filter(self.model.id.in_(appointment_ids)).update(
@@ -109,4 +123,4 @@ class AppointmentRepository(BaseRepository[Appointment]):
             synchronize_session=False
         )
         db.flush()
-        return count    
+        return count

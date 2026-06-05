@@ -1,7 +1,20 @@
-from sqlalchemy import Column, Integer, String, Float, Time, Boolean, JSON, ForeignKey, DateTime, Index
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Time,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from .salon import Salon
+
+from app.database import Base
+
 
 class Practitioner(Base):
     __tablename__ = "practitioners"
