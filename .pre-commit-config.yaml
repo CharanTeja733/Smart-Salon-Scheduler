@@ -1,0 +1,17 @@
+repos:
+  # Ruff – linter + formatter (replaces black, isort, flake8)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9   # check for latest version
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  # Optional: check for large files, trailing whitespace, etc.
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files 

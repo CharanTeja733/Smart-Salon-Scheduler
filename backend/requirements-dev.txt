@@ -1,0 +1,19 @@
+# Include production dependencies
+-r requirements.txt
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+factory-boy==3.3.0
+
+# Code quality
+ruff==0.6.9
+pre-commit==3.7.0
+
+# Debugging / profiling
+ipython==8.18.1
+watchfiles==0.21.0
+
+# Optional: load testing
+locust==2.20.1
