@@ -1,5 +1,4 @@
 from sqlalchemy import (
-    JSON,
     Boolean,
     Column,
     DateTime,
@@ -10,6 +9,7 @@ from sqlalchemy import (
     String,
     Time,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -29,20 +29,20 @@ class Practitioner(Base):
     bio = Column(String(500))
     photo_url = Column(String(500))
     base_price = Column(Float, default=50.0)
-    service_prices = Column(JSON, default=dict)
-    specializations = Column(JSON, default=list)
+    service_prices = Column(JSONB, default=dict)
+    specializations = Column(JSONB, default=list)
     rating = Column(Float, default=0.0)
     total_reviews = Column(Integer, default=0)
-    default_opening_hours = Column(JSON)
+    default_opening_hours = Column(JSONB)
     lunch_break_start = Column(Time)
     lunch_break_end = Column(Time)
-    off_days = Column(JSON, default=list)          # e.g., ["sunday", "2024-12-25"]
+    off_days = Column(JSONB, default=list)          # e.g., ["sunday", "2024-12-25"]
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     # Relationships
-    salon = relationship("Salon", backref="practitioners")
+    salon = relationship("Salon", back_populates="practitioners")
     appointments = relationship("Appointment", back_populates="practitioner", cascade="all, delete-orphan")
     reviews = relationship("Review", back_populates="practitioner", cascade="all, delete-orphan")
     waitlist_entries = relationship("WaitlistEntry", back_populates="practitioner")

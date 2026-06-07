@@ -1,11 +1,10 @@
-# backend/app/services/scheduling_service.py
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, time, timedelta, timezone
 from typing import List
 
 from sqlalchemy.orm import Session
 
 from app.models.practitioner import Practitioner
-from app.repositories import AppointmentRepository, PractitionerRepository
+from app.repositories import AppointmentRepository, PractitionerRepository, AvailabilityExceptionRepository
 
 
 class SchedulingService:
@@ -28,33 +27,40 @@ class SchedulingService:
         """
         practitioner_repo = PractitionerRepository()
         appointment_repo = AppointmentRepository()
+        exc_repo = AvailabilityExceptionRepository() 
 
         practitioner = practitioner_repo.get_by_id(db, practitioner_id)
         if not practitioner or not practitioner.is_active:
             return []
 
-        # 1. Check if practitioner is off on this date
+        # 1. Check if there is an availability exception (sick, emergency) that blocks the whole day
+        exception = exc_repo.get_by_practitioner_and_date(db, practitioner_id, target_date)
+        if exception and not exception.is_working:
+            return []   # practitioner is unavailable this entire day
+
+
+        # 2. Check if practitioner is off on this date
         if SchedulingService._is_off_day(practitioner, target_date):
             return []
 
-        # 2. Get operating hours
+        # 3. Get operating hours
         open_time, close_time = SchedulingService._get_operating_hours(practitioner, target_date)
         if not open_time or not close_time:
             return []
 
-        # 3. Generate candidate slots at SLOT_DURATION_MINUTES intervals
-        start_dt = datetime.combine(target_date, open_time)
-        end_dt = datetime.combine(target_date, close_time)
+        # 4. Generate candidate slots at SLOT_DURATION_MINUTES intervals
+        start_dt = datetime.combine(target_date, open_time, tzinfo=timezone.utc)
+        end_dt = datetime.combine(target_date, close_time, tzinfo=timezone.utc)
         candidate_slots = []
         current = start_dt
         while current + timedelta(minutes=SchedulingService.SLOT_DURATION_MINUTES) <= end_dt:
             candidate_slots.append(current)
             current += timedelta(minutes=SchedulingService.SLOT_DURATION_MINUTES)
 
-        # 4. Filter out slots that conflict with lunch breaks
+        # 5. Filter out slots that conflict with lunch breaks
         candidate_slots = SchedulingService._filter_lunch_break(practitioner, candidate_slots)
 
-        # 5. Filter out slots that are already booked (or needed for longer appointments)
+        # 6. Filter out slots that are already booked (or needed for longer appointments)
         available = []
         for slot in candidate_slots:
             slot_end = slot + timedelta(minutes=service_duration)

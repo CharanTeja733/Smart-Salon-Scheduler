@@ -1,5 +1,5 @@
-from sqlalchemy import JSON, BigInteger, Column, DateTime, Index, Integer, String
-from sqlalchemy.dialects.postgresql import INET
+from sqlalchemy import  BigInteger, Column, DateTime, Index, Integer, String
+from sqlalchemy.dialects.postgresql import INET, JSONB
 from sqlalchemy.sql import func
 
 from app.database import Base
@@ -12,8 +12,8 @@ class AuditLog(Base):
     entity_type = Column(String(50), nullable=False)
     entity_id = Column(Integer, nullable=False)
     action = Column(String(50), nullable=False)
-    old_values = Column(JSON)
-    new_values = Column(JSON)
+    old_values = Column(JSONB)
+    new_values = Column(JSONB)
     ip_address = Column(INET)
     user_agent = Column(String(500))
     created_at = Column(DateTime(timezone=True), server_default=func.now())

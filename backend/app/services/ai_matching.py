@@ -9,7 +9,7 @@ from app.repositories import (
     PractitionerRepository,
     ReviewRepository,
 )
-from app.services.scheduling_service import SchedulingService
+from app.services.scheduling import SchedulingService
 
 
 class AIStylistMatcherService:

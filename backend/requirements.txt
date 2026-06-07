@@ -6,7 +6,7 @@ pydantic-settings==2.1.0
 python-dotenv==1.0.0
 
 # Database
-sqlalchemy==2.0.23
+sqlalchemy==2.0.50
 psycopg2-binary==2.9.9
 alembic==1.12.1
 geoalchemy2==0.14.1

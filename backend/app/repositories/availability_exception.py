@@ -27,3 +27,9 @@ class AvailabilityExceptionRepository(BaseRepository[AvailabilityException]):
             reason_code=reason_code,
             reason_text=reason_text
         )
+
+    def get_by_practitioner_and_date(self, db: Session, practitioner_id: int, exception_date: date) -> Optional[AvailabilityException]:
+        return db.query(self.model).filter(
+            self.model.practitioner_id == practitioner_id,
+            self.model.exception_date == exception_date
+        ).first()

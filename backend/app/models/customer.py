@@ -1,4 +1,5 @@
-from sqlalchemy import JSON, Column, DateTime, Float, ForeignKey, Index, Integer, String
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Index, Integer, String
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -13,7 +14,7 @@ class Customer(Base):
     email = Column(String(255))
     name = Column(String(100), nullable=False)
     preferred_stylist_id = Column(Integer, ForeignKey("practitioners.id"), nullable=True)
-    preferred_service_types = Column(JSON, default=list)
+    preferred_service_types = Column(JSONB, default=list)
     total_appointments = Column(Integer, default=0)
     total_spent = Column(Float, default=0.0)
     no_show_count = Column(Integer, default=0)

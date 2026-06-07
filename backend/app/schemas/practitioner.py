@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, time
 from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field, validator
@@ -24,8 +24,8 @@ class PractitionerBase(BaseModel):
     base_price: float = Field(50.0, ge=0)
     service_prices: Dict[str, float] = {}
     specializations: List[str] = []
-    lunch_break_start: Optional[str] = None  # "13:00:00"
-    lunch_break_end: Optional[str] = None
+    lunch_break_start: Optional[time] = None  # "13:00:00"
+    lunch_break_end: Optional[time] = None
     off_days: List[str] = []
     is_active: bool = True
 
@@ -52,7 +52,7 @@ class Practitioner(PractitionerBase):
 
 class PractitionerResponse(PractitionerBase):
     id: int
-    salon_name: str
+    salon_name: str = None
     rating: float
     total_reviews: int
     reviews: Optional[List['ReviewBrief']] = None

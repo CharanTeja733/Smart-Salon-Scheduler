@@ -12,8 +12,9 @@ from app.schemas.appointment import (
     ConfirmRequest,
     RescheduleRequest,
 )
-from app.services.booking_service import BookingService
-from app.services.cancellation_service import CancellationService
+from app.services.booking import BookingService
+from app.services.cancellation import CancellationService
+from app.repositories.appointment import AppointmentRepository
 
 router = APIRouter()
 
@@ -90,7 +91,7 @@ async def get_appointment_status(
     appointment_id: int,
     db: Session = Depends(get_db)
 ):
-    from app.repositories.appointment_repository import AppointmentRepository
+
     repo = AppointmentRepository()
     apt = repo.get_by_id(db, appointment_id)
     if not apt:

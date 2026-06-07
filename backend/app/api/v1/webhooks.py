@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Request
 
 from app.config import settings
 from app.database import SessionLocal
-from app.services.booking_service import BookingService
+from app.services.booking import BookingService
 
 router = APIRouter()
 
@@ -27,7 +27,9 @@ async def stripe_webhook(request: Request):
         appointment_id = payment_intent["metadata"].get("appointment_id")
         if appointment_id:
             db = SessionLocal()
+            print("-------------------------------------------------------------------")
             await BookingService.confirm_booking(int(appointment_id), payment_intent["id"], db)
+            print("-------------------------------------------------------------------")
             db.close()
 
     return {"status": "received"}

@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     TWILIO_PHONE_NUMBER: str
     RESEND_API_KEY: str
 
+    #From Email Address
+    EMAIL_FROM_ADDRESS: str
+    
     # Business rules (defaults – can be overridden by .env)
     BOOKING_MIN_ADVANCE_HOURS: int = 1
     BOOKING_MAX_ADVANCE_DAYS: int = 90

@@ -1,19 +1,19 @@
-from datetime import datetime
+# backend/app/services/cancellation.py
+from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy.orm import Session
 
 from app.repositories import AppointmentRepository, AuditLogRepository
-from app.services.payment_service import PaymentService
-from app.services.waitlist_service import WaitlistService
+from app.services.payment import PaymentService
+from app.services.waitlist import WaitlistService
 
 
 class CancellationService:
-    # Refund tiers: (hours_before, refund_percentage)
     REFUND_POLICY = [
-        (24, 100),   # 100% if >=24h
-        (2, 50),     # 50% if 2-24h
-        (0, 0)       # 0% if <2h
+        (24, 100),
+        (2, 50),
+        (0, 0)
     ]
 
     @staticmethod
@@ -27,8 +27,24 @@ class CancellationService:
         if appointment.status in ["completed", "cancelled"]:
             return {"success": False, "error": f"Cannot cancel appointment with status {appointment.status}"}
 
-        # Calculate refund percentage based on time before appointment
-        now = datetime.utcnow()
+        # If deposit was never paid, no refund, no fee
+        if not appointment.deposit_paid:
+            # Just cancel the appointment
+            appointment.status = "cancelled"
+            appointment.cancelled_at = datetime.now(timezone.utc)
+            appointment.cancellation_reason = reason
+            db.flush()
+            db.commit()
+            return {
+                "success": True,
+                "appointment_id": appointment_id,
+                "refund_amount": 0.0,
+                "cancellation_fee": 0.0,
+                "policy_applied": "No deposit paid – no refund"
+            }
+
+        # Only proceed with refund calculation if deposit was paid
+        now = datetime.now(timezone.utc)
         hours_until = (appointment.start_time - now).total_seconds() / 3600
 
         refund_percent = 0
@@ -40,8 +56,8 @@ class CancellationService:
         refund_amount = (appointment.deposit_amount * refund_percent) / 100
         cancellation_fee = appointment.deposit_amount - refund_amount
 
-        # Process refund if deposit was paid
-        if refund_amount > 0 and appointment.deposit_paid and appointment.deposit_payment_intent_id:
+        # Process refund via Stripe
+        if refund_amount > 0:
             refund_success = await PaymentService.process_refund(
                 appointment.deposit_payment_intent_id,
                 refund_amount
@@ -69,7 +85,7 @@ class CancellationService:
         )
         db.commit()
 
-        # Notify waitlist (if slot becomes free)
+        # Notify waitlist
         if appointment.practitioner_id:
             await WaitlistService.notify_for_slot(
                 db, appointment.practitioner_id, appointment.start_time, appointment.service_type

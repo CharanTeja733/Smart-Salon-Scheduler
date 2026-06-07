@@ -13,7 +13,7 @@ class SalonBase(BaseModel):
     phone: Optional[str] = None
     rating: float = Field(0.0, ge=0, le=5)
     rating_count: int = Field(0, ge=0)
-    opening_hours: Dict[str, str]  # e.g., {"monday": "09:00-18:00"}
+    opening_hours: Dict[str, str]
 
 class Salon(SalonBase):
     id: int

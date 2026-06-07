@@ -1,9 +1,11 @@
 from geoalchemy2 import Geography
-from sqlalchemy import JSON, Column, DateTime, Float, Index, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, DateTime, Float, Index, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-Base = declarative_base()
+from app.database import Base
+
 
 class Salon(Base):
     __tablename__ = "salons"
@@ -17,8 +19,8 @@ class Salon(Base):
     phone = Column(String(50))
     rating = Column(Float, default=0.0)
     rating_count = Column(Integer, default=0)
-    opening_hours = Column(JSON, nullable=False)
-    photo_reference = Column(String(255))
+    opening_hours = Column(JSONB, nullable=False)
+    photo_reference = Column(Text)
     cached_at = Column(DateTime(timezone=True), server_default=func.now())
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
@@ -26,8 +28,11 @@ class Salon(Base):
     # PostGIS geography column for distance queries
     location = Column(Geography('POINT', srid=4326))
 
+    # Add relationship to match Practitioner's back_populates
+    practitioners = relationship("Practitioner", back_populates="salon", cascade="all, delete-orphan")
+
     __table_args__ = (
         Index('idx_salons_google_place_id', 'google_place_id'),
         Index('idx_salons_rating', rating.desc()),
-        Index('idx_salons_location', location, postgresql_using='gist'),
+        # Index('idx_salons_location', location, postgresql_using='gist'),
     )

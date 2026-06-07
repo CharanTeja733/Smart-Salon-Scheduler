@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session,joinedload
 
 from app.models.practitioner import Practitioner
 
@@ -38,3 +38,6 @@ class PractitionerRepository(BaseRepository[Practitioner]):
             "total_reviews": total_reviews
         })
         db.flush()
+
+    def get_by_id_with_salon(self, db: Session, practitioner_id: int) -> Optional[Practitioner]:
+        return db.query(self.model).options(joinedload(self.model.salon)).filter(self.model.id == practitioner_id).first()

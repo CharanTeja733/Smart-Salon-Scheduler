@@ -1,5 +1,5 @@
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from pydantic import BaseModel, validator
@@ -42,7 +42,10 @@ def validate_email(v: str) -> str:
     return v
 
 def validate_future_datetime(v: datetime, min_hours: int = 1, max_days: int = 90) -> datetime:
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
+    if v.tzinfo is None:
+        # If input is naive, assume UTC
+        v = v.replace(tzinfo=timezone.utc)
     if v < now + timedelta(hours=min_hours):
         raise ValueError(f"Booking must be at least {min_hours} hour(s) in advance")
     if v > now + timedelta(days=max_days):

@@ -10,6 +10,7 @@ factory-boy==3.3.0
 # Code quality
 ruff==0.6.9
 pre-commit==3.7.0
+mypy==1.9.0
 
 # Debugging / profiling
 ipython==8.18.1

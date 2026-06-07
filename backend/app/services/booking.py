@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from sqlalchemy.orm import Session
@@ -10,8 +10,9 @@ from app.repositories import (
     PractitionerRepository,
 )
 from app.schemas.appointment import CustomerInfo
-from app.services.payment_service import PaymentService
+from app.services.payment import PaymentService
 
+from app.tasks.reminders import schedule_reminder, send_booking_confirmation_task  
 
 class BookingService:
     HOLD_MINUTES = 10
@@ -32,19 +33,23 @@ class BookingService:
         customer_repo = CustomerRepository()
         audit_repo = AuditLogRepository()
 
-        # 1. Lock practitioner row to prevent concurrent modifications
+        # Ensure start_time is timezone‑aware (assume UTC if naive)
+        if start_time.tzinfo is None:
+            start_time = start_time.replace(tzinfo=timezone.utc)
+
+        # 1. Lock practitioner row
         practitioner = practitioner_repo.lock_for_update(db, practitioner_id)
         if not practitioner or not practitioner.is_active:
             return {"success": False, "error": "Practitioner not available"}
 
-        # 2. Double-check slot availability within transaction
+        # 2. Double‑check slot availability
         existing = appointment_repo.get_by_practitioner_and_slot(
             db, practitioner_id, start_time, for_update=True
         )
         if existing:
             return {"success": False, "error": "Slot already booked"}
 
-        # 3. Check for longer overlapping appointments
+        # 3. Check overlapping appointments
         end_time = start_time + timedelta(minutes=duration_minutes)
         overlapping = appointment_repo.get_overlapping(
             db, practitioner_id, start_time, end_time, for_update=True
@@ -52,8 +57,8 @@ class BookingService:
         if overlapping:
             return {"success": False, "error": "Time slot conflicts with existing booking"}
 
-        # 4. Business rule: min 1h advance, max 90 days (already validated in schema, but double-check)
-        now = datetime.utcnow()
+        # 4. Business rules (use aware datetime)
+        now = datetime.now(timezone.utc)
         if start_time < now + timedelta(hours=1):
             return {"success": False, "error": "Bookings must be at least 1 hour in advance"}
         if start_time > now + timedelta(days=90):
@@ -88,7 +93,20 @@ class BookingService:
         }
         appointment = appointment_repo.create(db, **appointment_data)
 
-        # 8. Create Stripe PaymentIntent for deposit
+        # 8. Create JSON‑serializable copy for audit log (convert datetime to ISO strings)
+        def prepare_for_json(obj):
+            if isinstance(obj, dict):
+                return {k: prepare_for_json(v) for k, v in obj.items()}
+            elif isinstance(obj, datetime):
+                return obj.isoformat()
+            elif isinstance(obj, list):
+                return [prepare_for_json(item) for item in obj]
+            else:
+                return obj
+
+        audit_data = prepare_for_json(appointment_data)
+
+        # 9. Create Stripe PaymentIntent for deposit
         payment_intent = await PaymentService.create_deposit_intent(
             appointment_id=appointment.id,
             amount=deposit,
@@ -96,19 +114,19 @@ class BookingService:
             customer_name=customer.name
         )
 
-        # 9. Audit log
+        # 10. Audit log
         audit_repo.log_change(
             db,
             entity_type="appointment",
             entity_id=appointment.id,
             action="create",
-            new_values=appointment_data,
+            new_values=audit_data,
             ip_address=ip_address,
             user_agent=user_agent
         )
 
-        # 10. Update customer stats
-        customer_repo.increment_appointment_count(db, customer.id, amount_spent=0)  # spent added later
+        # 11. Update customer stats
+        customer_repo.increment_appointment_count(db, customer.id, amount_spent=0)
 
         db.commit()
 
@@ -126,7 +144,6 @@ class BookingService:
         appointment_repo = AppointmentRepository()
         payment_service = PaymentService
 
-        # Verify payment with Stripe
         verified = await payment_service.verify_deposit(payment_intent_id)
         if not verified:
             return {"success": False, "error": "Payment verification failed"}
@@ -135,18 +152,33 @@ class BookingService:
         if not appointment:
             return {"success": False, "error": "Appointment not found"}
 
-        # Update deposit paid flag
         appointment.deposit_paid = True
         appointment.deposit_payment_intent_id = payment_intent_id
         db.flush()
         db.commit()
 
-        # Schedule reminder (background task) - will be handled by Celery later
-        from app.tasks.reminders import schedule_reminder
+        # Schedule the 24h reminder
         schedule_reminder.delay(appointment_id)
 
-        return {"success": True, "appointment_id": appointment_id, "status": "confirmed"}
+        # Send immediate confirmation notification (email + SMS)
+        customer = appointment.customer
+        practitioner = appointment.practitioner
+        salon = practitioner.salon
+        details = {
+            "appointment_id": appointment.id,
+            "practitioner_name": practitioner.name,
+            "salon_name": salon.name if salon else "",
+            "start_time": appointment.start_time.isoformat(),
+            "service_type": appointment.service_type
+        }
+        send_booking_confirmation_task.delay(
+            appointment_id=appointment.id,
+            customer_email=customer.email,
+            customer_name=customer.name,
+            details=details
+        )
 
+        return {"success": True, "appointment_id": appointment_id, "status": "confirmed"}
     @staticmethod
     async def reschedule_appointment(appointment_id: int, new_start_time: datetime, db: Session):
         appointment_repo = AppointmentRepository()
@@ -159,12 +191,13 @@ class BookingService:
         if appointment.status not in ["pending", "confirmed"]:
             return {"success": False, "error": "Cannot reschedule completed or cancelled appointment"}
 
-        # Lock practitioner
+        if new_start_time.tzinfo is None:
+            new_start_time = new_start_time.replace(tzinfo=timezone.utc)
+
         practitioner = practitioner_repo.lock_for_update(db, appointment.practitioner_id)
         if not practitioner:
             return {"success": False, "error": "Practitioner unavailable"}
 
-        # Check availability of new slot
         new_end = new_start_time + timedelta(minutes=appointment.service_duration)
         overlapping = appointment_repo.get_overlapping(
             db, appointment.practitioner_id, new_start_time, new_end, for_update=True
@@ -172,7 +205,6 @@ class BookingService:
         if overlapping:
             return {"success": False, "error": "New time slot not available"}
 
-        # Atomic: update appointment time
         old_start = appointment.start_time
         appointment.start_time = new_start_time
         appointment.end_time = new_end
@@ -183,8 +215,8 @@ class BookingService:
             entity_type="appointment",
             entity_id=appointment_id,
             action="reschedule",
-            old_values={"start_time": old_start},
-            new_values={"start_time": new_start_time}
+            old_values={"start_time": old_start.isoformat() if old_start else None},
+            new_values={"start_time": new_start_time.isoformat()}
         )
         db.commit()
 

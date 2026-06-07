@@ -7,7 +7,8 @@ from app.schemas.waitlist import (
     WaitlistResponse,
     WaitlistStatusResponse,
 )
-from app.services.waitlist_service import WaitlistService
+from app.repositories.waitlist import WaitlistRepository
+from app.services.waitlist import WaitlistService
 
 router = APIRouter()
 
@@ -36,7 +37,6 @@ async def get_waitlist_status(
     waitlist_id: int,
     db: Session = Depends(get_db)
 ):
-    from app.repositories.waitlist_repository import WaitlistRepository
     repo = WaitlistRepository()
     entry = repo.get_by_id(db, waitlist_id)
     if not entry:

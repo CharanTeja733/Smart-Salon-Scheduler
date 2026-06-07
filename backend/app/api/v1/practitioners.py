@@ -4,16 +4,16 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.repositories.practitioner_repository import PractitionerRepository
-from app.repositories.review_repository import ReviewRepository
+from app.repositories.practitioner import PractitionerRepository
+from app.repositories.review import ReviewRepository
 from app.schemas.practitioner import (
     AvailabilityResponse,
     DeactivateRequest,
     PractitionerResponse,
     UnavailableRequest,
 )
-from app.services.practitioner_service import PractitionerService
-from app.services.scheduling_service import SchedulingService
+from app.services.practitioner import PractitionerService
+from app.services.scheduling import SchedulingService
 
 router = APIRouter()
 
@@ -24,16 +24,20 @@ async def get_practitioner(
     db: Session = Depends(get_db)
 ):
     practitioner_repo = PractitionerRepository()
-    practitioner = practitioner_repo.get_by_id(db, practitioner_id)
+    practitioner = practitioner_repo.get_by_id_with_salon(db, practitioner_id)
     if not practitioner or not practitioner.is_active:
         raise HTTPException(status_code=404, detail="Practitioner not found")
 
+    # Convert ORM to Pydantic model
     response = PractitionerResponse.from_orm(practitioner)
+    # Manually set salon_name from the eager-loaded relationship
+    response.salon_name = practitioner.salon.name if practitioner.salon else ""
+
     if include_reviews:
         review_repo = ReviewRepository()
         reviews = review_repo.get_by_practitioner(db, practitioner_id, limit=20)
         response.reviews = reviews
-    return response
+    return response    
 
 @router.get("/{practitioner_id}/availability", response_model=AvailabilityResponse)
 async def get_availability(
@@ -82,8 +86,12 @@ async def mark_practitioner_unavailable(
     #     raise HTTPException(status_code=403, detail="Not authorized")
 
     result = await PractitionerService.mark_unavailable(
-        practitioner_id, req.start_date, req.end_date,
-        req.reason_code, req.reason_text, db
+        practitioner_id=practitioner_id,
+        start_date=req.start_date,
+        end_date=req.end_date,
+        reason_code=req.reason_code,
+        db=db,
+        reason_text=req.reason_text
     )
     if not result["success"]:
         raise HTTPException(status_code=400, detail=result["error"])

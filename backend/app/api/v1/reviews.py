@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.repositories.appointment_repository import AppointmentRepository
-from app.repositories.review_repository import ReviewRepository
+from app.repositories.appointment import AppointmentRepository
+from app.repositories.review import ReviewRepository
 from app.schemas.review import ReviewCreate, ReviewResponse
 
 router = APIRouter()

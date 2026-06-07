@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.repositories.appointment_repository import AppointmentRepository
-from app.repositories.customer_repository import CustomerRepository
+from app.repositories.appointment import AppointmentRepository
+from app.repositories.customer import CustomerRepository
 from app.schemas.appointment import AppointmentStatusResponse
 from app.schemas.customer import CustomerResponse, CustomerUpdate
 

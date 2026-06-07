@@ -1,5 +1,4 @@
 import stripe
-
 from app.config import settings
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -7,13 +6,17 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 class PaymentService:
     @staticmethod
     async def create_deposit_intent(appointment_id: int, amount: float, customer_email: str, customer_name: str):
-        """Create a Stripe PaymentIntent for the deposit."""
+        """Create a Stripe PaymentIntent for the deposit (non‑redirect methods only)."""
         intent = stripe.PaymentIntent.create(
             amount=int(amount * 100),  # cents
             currency="usd",
             metadata={"appointment_id": appointment_id},
             receipt_email=customer_email,
-            description=f"Deposit for appointment #{appointment_id}"
+            description=f"Deposit for appointment #{appointment_id}",
+            automatic_payment_methods={
+                "enabled": True,
+                "allow_redirects": "never"
+            }
         )
         return intent
 
@@ -46,6 +49,10 @@ class PaymentService:
             currency="usd",
             payment_method=payment_method_id,
             confirm=True,
-            metadata={"appointment_id": appointment_id, "type": "final_payment"}
+            metadata={"appointment_id": appointment_id, "type": "final_payment"},
+            automatic_payment_methods={
+                "enabled": True,
+                "allow_redirects": "never"
+            }
         )
         return intent

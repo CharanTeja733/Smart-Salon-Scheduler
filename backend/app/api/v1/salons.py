@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.schemas.salon import SalonResponse
-from app.services.salon_service import SalonService
+from app.services.salon import SalonService
 
 router = APIRouter()
 

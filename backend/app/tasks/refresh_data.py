@@ -1,7 +1,7 @@
 from celery import shared_task
 
 from app.database import SessionLocal
-from app.services.google_places_service import GooglePlacesService
+from app.services.google_places import GooglePlacesService
 
 
 @shared_task
@@ -16,7 +16,7 @@ def refresh_salon_cache():
     db = SessionLocal()
     try:
         for loc in locations:
-            await GooglePlacesService.fetch_and_cache_salons(
+            GooglePlacesService.fetch_and_cache_salons_sync(
                 db, loc["lat"], loc["lng"], loc["radius"]
             )
         db.commit()

@@ -3,8 +3,8 @@ from datetime import datetime, timedelta
 from celery import shared_task
 
 from app.database import SessionLocal
-from app.repositories.appointment_repository import AppointmentRepository
-from app.repositories.audit_log_repository import AuditLogRepository
+from app.repositories.appointment import AppointmentRepository
+from app.repositories.audit_log import AuditLogRepository
 
 
 @shared_task
@@ -24,7 +24,7 @@ def cleanup_old_logs(days_to_keep: int = 30):
     """Delete audit logs older than specified days."""
     db = SessionLocal()
     try:
-        cutoff = datetime.utcnow() - timedelta(days=days_to_keep)
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days_to_keep)
         audit_repo = AuditLogRepository()
         # Custom delete method
         deleted = db.query(audit_repo.model).filter(audit_repo.model.created_at < cutoff).delete()

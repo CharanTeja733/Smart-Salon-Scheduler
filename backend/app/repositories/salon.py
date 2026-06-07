@@ -1,12 +1,11 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Tuple
 
-from geoalchemy2.functions import ST_DistanceSphere
+from geoalchemy2.functions import ST_Distance
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.models.salon import Salon
-
 from .base import BaseRepository
 
 
@@ -25,11 +24,12 @@ class SalonRepository(BaseRepository[Salon]):
         offset: int = 0,
     ) -> List[Salon]:
         """Return salons within radius, ordered by distance."""
+
         point = f'POINT({lng} {lat})'
         query = db.query(self.model).filter(
-            ST_DistanceSphere(self.model.location, func.ST_GeogFromText(point)) <= radius_meters,
+            ST_Distance(self.model.location, func.ST_GeogFromText(point)) <= radius_meters,
             self.model.rating >= min_rating
-        ).order_by(ST_DistanceSphere(self.model.location, func.ST_GeogFromText(point))).offset(offset).limit(limit)
+        ).order_by(ST_Distance(self.model.location, func.ST_GeogFromText(point))).offset(offset).limit(limit)
         return query.all()
 
     def get_cached_by_location(
@@ -39,10 +39,11 @@ class SalonRepository(BaseRepository[Salon]):
         Returns (salons, is_fresh) where is_fresh=True if data is within max_age_days.
         Uses search_by_location and checks cached_at of the first salon.
         """
+        
         salons = self.search_by_location(db, lat, lng, radius, min_rating=0, limit=1000, offset=0)
         if not salons:
             return [], False
-        cutoff = datetime.utcnow() - timedelta(days=max_age_days)
+        cutoff = datetime.now(timezone.utc) - timedelta(days=max_age_days)
         is_fresh = any(s.cached_at and s.cached_at > cutoff for s in salons)
         return salons, is_fresh
 
@@ -54,7 +55,7 @@ class SalonRepository(BaseRepository[Salon]):
         if existing:
             for key, value in salon_data.items():
                 setattr(existing, key, value)
-            existing.cached_at = datetime.utcnow()
+            existing.cached_at = datetime.now(timezone.utc)
             db.flush()
             return existing
         else:

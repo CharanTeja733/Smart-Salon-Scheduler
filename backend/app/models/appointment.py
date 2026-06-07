@@ -9,6 +9,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    text,
     UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
@@ -52,7 +53,8 @@ class Appointment(Base):
 
     __table_args__ = (
         # Critical: prevents double booking at database level
-        UniqueConstraint('practitioner_id', 'start_time', name='unique_practitioner_slot'),
+        # removed this UniqueConstraint('practitioner_id', 'start_time', name='unique_practitioner_slot'),
+        Index('unique_active_slot', 'practitioner_id', 'start_time', unique=True, postgresql_where=text("status IN ('pending', 'confirmed')")),
         CheckConstraint('service_duration IN (30,60,90,120)', name='check_duration'),
         CheckConstraint("status IN ('pending','confirmed','completed','cancelled','no_show')", name='check_status'),
         Index('idx_appointments_customer_status', 'customer_id', 'status', 'start_time'),

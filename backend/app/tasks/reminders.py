@@ -1,11 +1,10 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from celery import shared_task
 
 from app.database import SessionLocal
-from app.repositories.appointment_repository import AppointmentRepository
-from app.services.notification_service import NotificationService
-
+from app.repositories.appointment import AppointmentRepository
+from app.services.notification import NotificationService
 
 @shared_task
 def send_reminder(appointment_id: int):
@@ -22,7 +21,7 @@ def send_reminder(appointment_id: int):
             return {"status": "skipped", "reason": "already sent"}
 
         # Calculate time until appointment
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         hours_until = (appointment.start_time - now).total_seconds() / 3600
 
         # Only send if within 24-2 hours range
@@ -30,7 +29,7 @@ def send_reminder(appointment_id: int):
             customer = appointment.customer
             practitioner = appointment.practitioner
             message = f"Reminder: Your appointment with {practitioner.name} at {practitioner.salon.name} is tomorrow at {appointment.start_time.strftime('%I:%M %p')}. Reply CANCEL to cancel."
-            await NotificationService.send_sms(customer.phone, message)
+            NotificationService.send_sms_sync(customer.phone, message)
 
             # Mark reminder as sent
             appointment.reminder_sent = True
@@ -45,8 +44,8 @@ def send_reminder(appointment_id: int):
 def send_booking_confirmation_task(appointment_id: int, customer_email: str, customer_name: str, details: dict):
     """Send booking confirmation email (async)."""
     # Import inside to avoid circular import
-    from app.services.notification_service import NotificationService
-    await NotificationService.send_booking_confirmation(customer_email, customer_name, details)
+    from app.services.notification import NotificationService
+    NotificationService.send_booking_confirmation_sync(customer_email, customer_name, details)
 
 @shared_task
 def schedule_reminder(appointment_id: int):
@@ -57,7 +56,7 @@ def schedule_reminder(appointment_id: int):
         appointment = apt_repo.get_by_id(db, appointment_id)
         if appointment and appointment.start_time:
             # Calculate delay until 24 hours before
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             reminder_time = appointment.start_time - timedelta(hours=24)
             delay_seconds = (reminder_time - now).total_seconds()
             if delay_seconds > 0:

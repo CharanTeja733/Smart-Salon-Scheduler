@@ -3,8 +3,8 @@ from typing import List, Optional, Tuple
 from sqlalchemy.orm import Session
 
 from app.models.salon import Salon
-from app.repositories.salon_repository import SalonRepository
-from app.services.google_places_service import GooglePlacesService
+from app.repositories.salon import SalonRepository
+from app.services.google_places import GooglePlacesService
 
 
 class SalonService:
@@ -42,7 +42,7 @@ class SalonService:
 
         if google_results is not None:
             # Google succeeded (results could be empty list)
-            GooglePlacesService.store_results(db, google_results, lat, lng, radius)
+            await GooglePlacesService.store_results(db, google_results, lat, lng, radius)
             # Fetch fresh stored data (including potential zero-result marker)
             fresh_salons, _ = repo.get_cached_by_location(db, lat, lng, radius, max_age_days=0)
             filtered = [s for s in fresh_salons if s.rating >= min_rating]
