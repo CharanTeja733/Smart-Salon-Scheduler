@@ -6,6 +6,12 @@ export default function Layout() {
       <nav className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
+            <Link
+              to="/ai-match"
+              className="bg-purple-600 text-white px-4 py-2 rounded-md text-sm hover:bg-purple-700"
+            >
+              AI Match
+            </Link>
             <Link to="/" className="text-xl font-bold text-pink-600">
               ✂️ Salon Scheduler
             </Link>

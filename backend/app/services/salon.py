@@ -1,14 +1,23 @@
-from typing import List, Optional, Tuple
-
+# backend/app/services/salon_service.py
+import math
+from typing import List, Tuple, Optional
 from sqlalchemy.orm import Session
-
 from app.models.salon import Salon
 from app.repositories.salon import SalonRepository
 from app.services.google_places import GooglePlacesService
 
-
 class SalonService:
-    CACHE_TTL_DAYS = 7  # from settings.SALON_CACHE_TTL_SECONDS // 86400
+    CACHE_TTL_DAYS = 7
+
+    @staticmethod
+    def haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+        """Return distance in meters between two points using Haversine formula."""
+        R = 6371  # Earth radius in km
+        dlat = math.radians(lat2 - lat1)
+        dlon = math.radians(lon2 - lon1)
+        a = math.sin(dlat / 2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2) ** 2
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+        return R * c * 1000  # meters
 
     @staticmethod
     async def search_salons(
@@ -20,41 +29,44 @@ class SalonService:
         offset: int,
         db: Session
     ) -> Tuple[List[Salon], Optional[str]]:
-        """
-        Returns (list_of_salon_orm_objects, warning_message).
-        warning_message is None if data is fresh from Google or cache.
-        """
         repo = SalonRepository()
 
-        # 1. Query DB once – store result
+        # 1. Get cached salons (pure ORM objects, no distance)
         cached_salons, is_fresh = repo.get_cached_by_location(
             db, lat, lng, radius, max_age_days=SalonService.CACHE_TTL_DAYS
         )
 
-        # 2. If fresh, return directly
+        # Helper to compute distance for a list of salons
+        def add_distances(salons: List[Salon]) -> List[Salon]:
+            for s in salons:
+                s.distance_meters = round(SalonService.haversine(lat, lng, s.latitude, s.longitude), 1)
+            return salons
+
+        # 2. Return fresh data
         if is_fresh and cached_salons:
-            filtered = [s for s in cached_salons if s.rating >= min_rating]
+            salons_with_dist = add_distances(cached_salons)
+            filtered = [s for s in salons_with_dist if s.rating >= min_rating]
             paginated = filtered[offset:offset+limit]
             return paginated, None
 
-        # 3. No fresh data -> call Google API
+        # 3. No fresh data -> call Google Places
         google_results = await GooglePlacesService.search_nearby(lat, lng, radius)
 
         if google_results is not None:
-            # Google succeeded (results could be empty list)
             await GooglePlacesService.store_results(db, google_results, lat, lng, radius)
-            # Fetch fresh stored data (including potential zero-result marker)
+            # Fetch newly stored salons (with max_age_days=0 to force refresh)
             fresh_salons, _ = repo.get_cached_by_location(db, lat, lng, radius, max_age_days=0)
-            filtered = [s for s in fresh_salons if s.rating >= min_rating]
+            fresh_with_dist = add_distances(fresh_salons)
+            filtered = [s for s in fresh_with_dist if s.rating >= min_rating]
             paginated = filtered[offset:offset+limit]
             return paginated, None
 
-        # 4. Google failed (timeout/error). Use stale cached_salons if available.
+        # 4. Google failed, use stale data if available
         if cached_salons:
-            filtered = [s for s in cached_salons if s.rating >= min_rating]
+            stale_with_dist = add_distances(cached_salons)
+            filtered = [s for s in stale_with_dist if s.rating >= min_rating]
             paginated = filtered[offset:offset+limit]
-            warning = "Using stale data. Google Places API temporarily unavailable."
-            return paginated, warning
+            return paginated, "Using stale data. Google Places API temporarily unavailable."
 
-        # 5. No data at all – return empty list with error warning
+        # 5. No data at all
         return [], "Unable to fetch salon data. Please try again later."

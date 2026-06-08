@@ -35,4 +35,6 @@ export const addToWaitlist = (data) => api.post('/waitlist', data)
 export const getWaitlistByPhone = (phone) =>
   api.get('/waitlist', { params: { customer_phone: phone } })
 
+export const matchStylist = (params) => api.get('/ai/match-stylist', { params })
+
 export default api

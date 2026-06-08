@@ -6,6 +6,7 @@ import BookingPage from './pages/BookingPage'
 import ConfirmationPage from './pages/ConfirmationPage'
 import MyBookingsPage from './pages/MyBookingsPage'
 import NotFoundPage from './pages/NotFoundPage'
+import AIMatchPage from './pages/AIMatchPage'
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/booking/:practitionerId" element={<BookingPage />} />
         <Route path="/confirmation/:appointmentId" element={<ConfirmationPage />} />
         <Route path="/my-bookings" element={<MyBookingsPage />} />
+        <Route path="/ai-match" element={<AIMatchPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
