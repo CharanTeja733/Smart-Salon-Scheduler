@@ -3,5 +3,5 @@ export default function Loader() {
     <div className="flex justify-center items-center py-12">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
     </div>
-  )
+  );
 }
