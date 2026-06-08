@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Optional
 
@@ -71,15 +71,18 @@ class RescheduleRequest(BaseModel):
 
     @validator('new_start_time')
     def validate_new_time(cls, v):
-        # Reschedule must be at least 2 hours notice
-        now = datetime.utcnow()
+         # Reschedule must be at least 2 hours notice
+        if v.tzinfo is None:
+            v = v.replace(tzinfo=timezone.utc)
+        now = datetime.now(timezone.utc)
         if v < now + timedelta(hours=2):
             raise ValueError("Rescheduling requires at least 2 hours notice")
         if v > now + timedelta(days=90):
             raise ValueError("Cannot reschedule more than 90 days in advance")
         if v.minute not in [0, 30]:
             raise ValueError("Appointments must start at :00 or :30")
-        return v
+        return v    
+        
 
 class AppointmentStatusResponse(BaseModel):
     id: int

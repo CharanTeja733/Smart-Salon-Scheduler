@@ -24,9 +24,10 @@ class PractitionerRepository(BaseRepository[Practitioner]):
         ).limit(limit).all()
 
     def get_by_service_type(self, db: Session, service_type: str, limit: int = 50) -> List[Practitioner]:
+        # Use the @> operator for JSONB containment
         return db.query(self.model).filter(
-            self.model.specializations.contains([service_type]),
-            self.model.is_active is True
+            self.model.specializations.op('@>')([service_type]),
+            self.model.is_active == True
         ).limit(limit).all()
 
     def lock_for_update(self, db: Session, practitioner_id: int) -> Optional[Practitioner]:

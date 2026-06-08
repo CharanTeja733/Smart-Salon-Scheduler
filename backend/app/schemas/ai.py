@@ -23,6 +23,11 @@ class StylistMatch(BaseModel):
     practitioner_id: int
     name: str
     salon_name: str
+    photo_url: Optional[str] = None          # new
+    specialty: Optional[str] = None          # new
+    experience_years: int = 0                # new
+    bio: Optional[str] = None                # new
+    service_prices: Dict[str, float] = {}    # new
     distance_meters: Optional[float] = None
     rating: float
     price: float

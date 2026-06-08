@@ -2,11 +2,13 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, Query, Response
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
 from app.schemas.salon import SalonResponse
 from app.services.salon import SalonService
+from app.models.salon import Salon
+
 
 router = APIRouter()
 
@@ -35,3 +37,18 @@ async def search_salons(
         response.headers["X-Cache-Warning"] = warning
 
     return salons
+
+
+@router.get("/{salon_id}", response_model=SalonResponse)
+async def get_salon(
+    salon_id: int,
+    db: Session = Depends(get_db)
+):
+    salon = db.query(Salon).options(
+        joinedload(Salon.practitioners)   # eager load all practitioners
+    ).filter(Salon.id == salon_id).first()
+    
+    if not salon:
+        raise HTTPException(status_code=404, detail="Salon not found")
+    
+    return salon

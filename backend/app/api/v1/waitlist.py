@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
 from app.schemas.waitlist import (
@@ -9,6 +9,9 @@ from app.schemas.waitlist import (
 )
 from app.repositories.waitlist import WaitlistRepository
 from app.services.waitlist import WaitlistService
+from typing import List
+from app.repositories.customer import CustomerRepository
+from app.models.waitlist import WaitlistEntry
 
 router = APIRouter()
 
@@ -32,20 +35,73 @@ async def add_to_waitlist(
         position=result["position"]
     )
 
+    
 @router.get("/{waitlist_id}", response_model=WaitlistStatusResponse)
 async def get_waitlist_status(
     waitlist_id: int,
     db: Session = Depends(get_db)
 ):
-    repo = WaitlistRepository()
-    entry = repo.get_by_id(db, waitlist_id)
+    entry = db.query(WaitlistEntry).options(
+        joinedload(WaitlistEntry.practitioner)
+    ).filter(WaitlistEntry.id == waitlist_id).first()
     if not entry:
         raise HTTPException(status_code=404, detail="Waitlist entry not found")
-    # Calculate position (simple count)
-    position = repo.count(db, practitioner_id=entry.practitioner_id, status="active")
+    
+    position = db.query(WaitlistEntry).filter(
+        WaitlistEntry.practitioner_id == entry.practitioner_id,
+        WaitlistEntry.status == "active",
+        WaitlistEntry.created_at < entry.created_at
+    ).count() + 1
+    
     return WaitlistStatusResponse(
         id=entry.id,
         status=entry.status,
         position=position,
-        notified_at=entry.notified_at
+        notified_at=entry.notified_at,
+        practitioner_id=entry.practitioner.id,
+        practitioner_name=entry.practitioner.name,
+        preferred_date_start=entry.preferred_date_start,
+        preferred_date_end=entry.preferred_date_end,
+        preferred_service_type=entry.preferred_service_type
     )
+
+
+@router.get("/", response_model=List[WaitlistStatusResponse])
+async def get_waitlist_by_customer(
+    customer_phone: str = Query(..., description="Customer phone in E.164 format"),
+    db: Session = Depends(get_db)
+):
+    customer_repo = CustomerRepository()
+    customer = customer_repo.get_by_phone(db, customer_phone)
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    
+    # Query with joined load to get practitioner details
+    entries = db.query(WaitlistEntry).options(
+        joinedload(WaitlistEntry.practitioner)
+    ).filter(
+        WaitlistEntry.customer_id == customer.id,
+        WaitlistEntry.status == "active"
+    ).order_by(WaitlistEntry.created_at).all()
+    
+    result = []
+    for entry in entries:
+        # Calculate position for this practitioner
+        position = db.query(WaitlistEntry).filter(
+            WaitlistEntry.practitioner_id == entry.practitioner_id,
+            WaitlistEntry.status == "active",
+            WaitlistEntry.created_at < entry.created_at
+        ).count() + 1
+        
+        result.append(WaitlistStatusResponse(
+            id=entry.id,
+            status=entry.status,
+            position=position,
+            notified_at=entry.notified_at,
+            practitioner_id=entry.practitioner.id,
+            practitioner_name=entry.practitioner.name,
+            preferred_date_start=entry.preferred_date_start,
+            preferred_date_end=entry.preferred_date_end,
+            preferred_service_type=entry.preferred_service_type
+        ))
+    return result

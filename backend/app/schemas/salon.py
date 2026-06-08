@@ -38,12 +38,12 @@ class SalonResponse(SalonBase):
     id: int
     distance_meters: Optional[float] = None
     photo_reference: Optional[str] = None
-    practitioners: Optional[List['PractitionerBrief']] = None
+    practitioners: Optional[List['PractitionerResponse']] = None
 
     class Config:
         from_attributes = True
 
 # Forward reference for PractitionerBrief
-from .practitioner import PractitionerBrief
+from .practitioner import PractitionerBrief, PractitionerResponse
 
 SalonResponse.model_rebuild()

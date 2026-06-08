@@ -81,13 +81,13 @@ class AIStylistMatcherService:
             else:
                 avg_sentiment = 0.5
             sentiment_score = ((avg_sentiment + 1) / 2) * 100
-            breakdown["sentiment"] = sentiment_score
+            breakdown["review_sentiment"] = sentiment_score
             score += sentiment_score * WEIGHTS["sentiment"]
 
             # 4. Workload balance (10%)
             upcoming = appointment_repo.get_upcoming_for_customer(db, p.id, limit=100)
             workload_score = max(0, 100 - (len(upcoming) * 2))
-            breakdown["workload"] = workload_score
+            breakdown["workload_balance"] = workload_score
             score += workload_score * WEIGHTS["workload"]
 
             # 5. Distance (10%) if coordinates provided
@@ -136,6 +136,11 @@ class AIStylistMatcherService:
                 "practitioner_id": p.id,
                 "name": p.name,
                 "salon_name": p.salon.name if p.salon else "",
+                "photo_url": p.photo_url,                    # new
+                "specialty": p.specialty,                    # new
+                "experience_years": p.experience_years,      # new
+                "bio": p.bio,                                # new
+                "service_prices": p.service_prices,          # new
                 "rating": p.rating,
                 "price": p.service_prices.get(service_type, p.base_price),
                 "available_slots": [s.isoformat() for s in slots],
@@ -157,10 +162,10 @@ class AIStylistMatcherService:
     @staticmethod
     def _generate_explanation(breakdown: dict) -> str:
         parts = []
-        if breakdown["expertise_match"] > 80:
+        if breakdown.get("expertise_match", 0) > 80:
             parts.append("perfect match for your service")
-        if breakdown["rating"] > 90:
+        if breakdown.get("rating", 0) > 90:
             parts.append("highly rated by customers")
-        if breakdown["sentiment"] > 70:
+        if breakdown.get("review_sentiment", 0) > 70:   # changed from 'sentiment'
             parts.append("excellent reviews")
         return f"{', '.join(parts)}." if parts else "Good overall match."

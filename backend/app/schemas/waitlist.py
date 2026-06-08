@@ -30,6 +30,11 @@ class WaitlistResponse(BaseModel):
 
 class WaitlistStatusResponse(BaseModel):
     id: int
-    status: str  # active, notified, booked, expired
+    status: str
     position: int
     notified_at: Optional[datetime] = None
+    practitioner_id: int
+    practitioner_name: str
+    preferred_date_start: Optional[datetime] = None
+    preferred_date_end: Optional[datetime] = None
+    preferred_service_type: Optional[str] = None
